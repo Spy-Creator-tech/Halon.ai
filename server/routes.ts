@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { generateAIResponse, generateContentByType } from "./services/openai";
 import { aiRequestSchema, quickActionSchema } from "@shared/schema";
+import { storage } from "./storage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -9,8 +10,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/chat", async (req, res) => {
     try {
       const { message, conversationHistory } = aiRequestSchema.parse(req.body);
+      const sessionId = req.headers['session-id'] as string || "default";
       
-      const response = await generateAIResponse(message, conversationHistory);
+      // Save user message to database
+      await storage.addMessage({
+        content: message,
+        sender: "user",
+        sessionId,
+      });
+      
+      // Get conversation history from database if not provided
+      const dbHistory = conversationHistory?.length ? conversationHistory : await storage.getMessages(sessionId);
+      
+      const response = await generateAIResponse(message, dbHistory);
+      
+      // Save AI response to database
+      await storage.addMessage({
+        content: response,
+        sender: "ai", 
+        sessionId,
+      });
       
       res.json({
         response,
@@ -53,6 +72,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/quick-action", async (req, res) => {
     try {
       const { action, parameters } = quickActionSchema.parse(req.body);
+      const sessionId = req.headers['session-id'] as string || "default";
+      
+      // Log quick action to database
+      await storage.logQuickAction({
+        action,
+        parameters,
+        sessionId,
+      });
       
       // Web-compatible actions - open relevant websites/services
       const actionResponses = {
@@ -73,6 +100,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Quick action API error:", error);
       res.status(500).json({ 
         error: "Failed to execute quick action",
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Get chat history endpoint
+  app.get("/api/chat-history", async (req, res) => {
+    try {
+      const sessionId = req.headers['session-id'] as string || "default";
+      const messages = await storage.getMessages(sessionId);
+      
+      res.json({
+        messages,
+        sessionId,
+      });
+    } catch (error) {
+      console.error("Chat history API error:", error);
+      res.status(500).json({
+        error: "Failed to retrieve chat history",
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Clear chat history endpoint
+  app.delete("/api/chat-history", async (req, res) => {
+    try {
+      const sessionId = req.headers['session-id'] as string || "default";
+      await storage.clearMessages(sessionId);
+      
+      res.json({
+        success: true,
+        message: "Chat history cleared successfully",
+      });
+    } catch (error) {
+      console.error("Clear history API error:", error);
+      res.status(500).json({
+        error: "Failed to clear chat history", 
         message: error instanceof Error ? error.message : "Unknown error"
       });
     }

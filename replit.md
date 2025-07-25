@@ -31,11 +31,17 @@ The application follows a clean separation between client and server with shared
 ### Backend Architecture
 - **Express Server**: RESTful API with middleware for logging and error handling
 - **AI Services**: OpenAI integration for chat responses and content generation
-- **Storage**: Simple in-memory storage for user data (can be extended to PostgreSQL)
+- **Storage**: PostgreSQL database with Drizzle ORM for persistent chat history and user data
 - **Development Setup**: Vite integration for hot reloading in development
 
 ### Database Schema
-The application is configured for PostgreSQL with Drizzle ORM but currently uses minimal database functionality. The schema includes basic user models and is extensible for future features.
+The application now uses PostgreSQL with Drizzle ORM for persistent data storage. Key database tables include:
+
+- **chat_messages**: Stores all user and AI conversations with session tracking
+- **quick_actions**: Logs all quick action executions with parameters
+- **users**: Basic user management (prepared for future authentication)
+
+All chat conversations are automatically saved and loaded on app startup, providing continuity between sessions.
 
 ## Data Flow
 

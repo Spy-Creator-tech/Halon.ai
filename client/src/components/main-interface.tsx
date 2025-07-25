@@ -6,7 +6,7 @@ import { AICapabilities } from "./ai-capabilities";
 import { VoiceVisualizer } from "./voice-visualizer";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { useTextToSpeech } from "@/hooks/use-text-to-speech";
-import { sendChatMessage } from "@/lib/openai-client";
+import { sendChatMessage, getChatHistory, clearChatHistory } from "@/lib/openai-client";
 import { useToast } from "@/hooks/use-toast";
 import type { ChatMessage } from "@shared/schema";
 import halonLogo from "@assets/halon-logo_1753438304132.png";
@@ -17,9 +17,32 @@ export function MainInterface() {
   const [voiceStatus, setVoiceStatus] = useState('Say "Ok Halon" to activate');
   const [showVoiceVisualizer, setShowVoiceVisualizer] = useState(false);
   const [voiceRingsVisible, setVoiceRingsVisible] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [sessionId] = useState("default");
   const { toast } = useToast();
 
   const { speak, isSpeaking } = useTextToSpeech();
+
+  // Load chat history on component mount
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      try {
+        const { messages: historyMessages } = await getChatHistory(sessionId);
+        setMessages(historyMessages);
+      } catch (error) {
+        console.error("Failed to load chat history:", error);
+        toast({
+          title: "History Load Error",
+          description: "Failed to load previous conversations",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+
+    loadChatHistory();
+  }, [sessionId, toast]);
 
   const { isListening, isSupported, hasPermission, startListening, stopListening, checkMicrophonePermission } = useSpeechRecognition({
     onResult: handleVoiceResult,
@@ -58,7 +81,7 @@ export function MainInterface() {
   }
 
   const handleSendMessage = async (message: string) => {
-    if (!message.trim()) return;
+    if (!message.trim() || isProcessing) return;
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -72,11 +95,28 @@ export function MainInterface() {
     setVoiceStatus("Processing...");
 
     try {
-      const response = await sendChatMessage(message, messages);
+      // Send message with sessionId header  
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "session-id": sessionId,
+        },
+        body: JSON.stringify({
+          message,
+          conversationHistory: messages,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send message");
+      }
+
+      const data = await response.json();
       
       const aiMessage: ChatMessage = {
         id: `ai-${Date.now()}`,
-        content: response.response,
+        content: data.response,
         sender: "ai",
         timestamp: new Date(),
       };
@@ -84,17 +124,35 @@ export function MainInterface() {
       setMessages(prev => [...prev, aiMessage]);
       
       // Speak the AI response
-      speak(response.response);
+      speak(data.response);
       
     } catch (error) {
       toast({
-        title: "Error",
+        title: "Error", 
         description: "Failed to get AI response",
         variant: "destructive",
       });
     } finally {
       setIsProcessing(false);
       setVoiceStatus('Say "Ok Halon" to activate');
+    }
+  };
+
+  const handleClearHistory = async () => {
+    try {
+      await clearChatHistory(sessionId);
+      setMessages([]);
+      toast({
+        title: "History Cleared",
+        description: "All conversation history has been cleared",
+      });
+    } catch (error) {
+      console.error("Failed to clear history:", error);
+      toast({
+        title: "Error",
+        description: "Failed to clear conversation history",
+        variant: "destructive",
+      });
     }
   };
 
@@ -171,6 +229,13 @@ export function MainInterface() {
                 <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
                 <span className="text-green-400 text-sm font-medium">Online</span>
               </div>
+              <Button 
+                onClick={handleClearHistory}
+                className="p-2 rounded-full glass-effect hover:bg-red-500/20 transition-all duration-300 bg-transparent border-0"
+                title="Clear conversation history"
+              >
+                <i className="fas fa-trash text-red-400" />
+              </Button>
               <Button className="p-2 rounded-full glass-effect hover:bg-white/10 transition-all duration-300 bg-transparent border-0">
                 <i className="fas fa-cog text-cyan-400" />
               </Button>
@@ -245,11 +310,20 @@ export function MainInterface() {
                 </div>
 
                 {/* Chat messages area */}
-                <ChatPanel
-                  messages={messages}
-                  onSendMessage={handleSendMessage}
-                  isProcessing={isProcessing}
-                />
+                {isLoadingHistory ? (
+                  <div className="flex-1 glass-effect rounded-2xl p-6 flex items-center justify-center">
+                    <div className="text-center">
+                      <i className="fas fa-spinner fa-spin text-cyan-400 text-2xl mb-2" />
+                      <p className="text-gray-300">Loading conversation history...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <ChatPanel
+                    messages={messages}
+                    onSendMessage={handleSendMessage}
+                    isProcessing={isProcessing}
+                  />
+                )}
               </div>
             </div>
 

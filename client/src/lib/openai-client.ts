@@ -38,3 +38,35 @@ export async function executeQuickAction(
   
   return await response.json();
 }
+
+export async function getChatHistory(sessionId: string = "default"): Promise<{ messages: ChatMessage[]; sessionId: string }> {
+  const response = await fetch("/api/chat-history", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "session-id": sessionId,
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error("Failed to fetch chat history");
+  }
+  
+  return await response.json();
+}
+
+export async function clearChatHistory(sessionId: string = "default"): Promise<{ success: boolean; message: string }> {
+  const response = await fetch("/api/chat-history", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "session-id": sessionId,
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error("Failed to clear chat history");
+  }
+  
+  return await response.json();
+}
