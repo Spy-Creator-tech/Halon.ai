@@ -45,10 +45,10 @@ export function ChatPanel({ messages, onSendMessage, isProcessing }: ChatPanelPr
                 answer questions, and create content.
               </p>
               <div className="text-gray-300 text-sm space-y-2">
-                <p><strong>Voice commands:</strong> Click the microphone and say "Ok Halon" followed by your request</p>
-                <p><strong>Text chat:</strong> Type your message below</p>
+                <p><strong>Voice commands:</strong> Click the microphone and say "Ok Halon" followed by your request (Chrome/Edge/Safari only)</p>
+                <p><strong>Text chat:</strong> Type your message below - works in all browsers!</p>
                 <p><strong>Quick actions:</strong> Use the buttons on the left panel</p>
-                <p className="text-yellow-300">💡 If voice isn't working, allow microphone permissions and make sure you're speaking clearly!</p>
+                <p className="text-cyan-300">Try asking me: "Tell me about AI", "Write a poem", "Generate code", etc.</p>
               </div>
             </div>
           </div>

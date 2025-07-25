@@ -220,9 +220,17 @@ export function MainInterface() {
                       {isProcessing ? "Processing..." : voiceStatus}
                     </p>
                     {!isSupported && (
-                      <p className="text-gray-400 text-sm text-center mt-2">
-                        Voice not available - Use chat below or try Chrome/Edge
-                      </p>
+                      <div className="text-center mt-4">
+                        <p className="text-red-400 text-sm mb-2">
+                          Voice recognition not supported in this browser
+                        </p>
+                        <p className="text-gray-400 text-xs">
+                          Try Chrome, Edge, or Safari for voice features
+                        </p>
+                        <p className="text-cyan-400 text-sm mt-2">
+                          💬 Use the text chat below instead!
+                        </p>
+                      </div>
                     )}
                     {isSupported && hasPermission === false && (
                       <Button
