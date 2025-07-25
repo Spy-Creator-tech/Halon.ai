@@ -1,0 +1,26 @@
+workflows:
+  android-debug:
+    name: Android Debug Build
+    instance_type: mac_mini_m1
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: latest
+    scripts:
+      - name: Set up Flutter
+        script: | 
+          flutter clean
+          flutter pub get
+      - name: Build Android debug APK
+        script: | 
+          flutter build apk --debug
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
+    publishing:
+      email:
+        recipients:
+          - sailiknanda53@gmail.com # IMPORTANT: Change this to your actual email address
+        success:
+          enabled: true
+        failure:
+          enabled: true
