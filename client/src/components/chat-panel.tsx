@@ -40,10 +40,16 @@ export function ChatPanel({ messages, onSendMessage, isProcessing }: ChatPanelPr
         {messages.length === 0 && (
           <div className="flex items-start space-x-3">
             <div className="chat-bubble-ai p-4 max-w-md">
-              <p className="text-white">
+              <p className="text-white mb-3">
                 Hello! I'm Halon, your AI assistant. I can help you control your device, 
-                answer questions, and create content. Try saying "Ok Halon" followed by your request!
+                answer questions, and create content.
               </p>
+              <div className="text-gray-300 text-sm space-y-2">
+                <p><strong>Voice commands:</strong> Click the microphone and say "Ok Halon" followed by your request</p>
+                <p><strong>Text chat:</strong> Type your message below</p>
+                <p><strong>Quick actions:</strong> Use the buttons on the left panel</p>
+                <p className="text-yellow-300">💡 If voice isn't working, allow microphone permissions and make sure you're speaking clearly!</p>
+              </div>
             </div>
           </div>
         )}

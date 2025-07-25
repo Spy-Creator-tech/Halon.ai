@@ -21,7 +21,7 @@ export function MainInterface() {
 
   const { speak, isSpeaking } = useTextToSpeech();
 
-  const { isListening, isSupported, startListening, stopListening } = useSpeechRecognition({
+  const { isListening, isSupported, hasPermission, startListening, stopListening, checkMicrophonePermission } = useSpeechRecognition({
     onResult: handleVoiceResult,
     onError: (error) => {
       // Only show error if it's not an "aborted" error
@@ -223,6 +223,15 @@ export function MainInterface() {
                       <p className="text-gray-400 text-sm text-center mt-2">
                         Voice not available - Use chat below or try Chrome/Edge
                       </p>
+                    )}
+                    {isSupported && hasPermission === false && (
+                      <Button
+                        onClick={checkMicrophonePermission}
+                        className="mt-4 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg"
+                      >
+                        <i className="fas fa-microphone-slash mr-2" />
+                        Enable Microphone
+                      </Button>
                     )}
                   </div>
                 </div>

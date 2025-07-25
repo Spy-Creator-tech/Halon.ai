@@ -29,6 +29,7 @@ export function useSpeechRecognition({
 }: UseSpeechRecognitionProps) {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
@@ -102,8 +103,27 @@ export function useSpeechRecognition({
     };
   }, [onResult, onError, continuous, language]);
 
-  const startListening = useCallback(() => {
+  // Check microphone permissions
+  const checkMicrophonePermission = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+      setHasPermission(true);
+      return true;
+    } catch (error) {
+      console.error("Microphone permission error:", error);
+      setHasPermission(false);
+      onError?.("Microphone access denied. Please allow microphone permissions in your browser settings.");
+      return false;
+    }
+  }, [onError]);
+
+  const startListening = useCallback(async () => {
     if (recognitionRef.current && !isListening) {
+      // First check microphone permissions
+      const hasAccess = await checkMicrophonePermission();
+      if (!hasAccess) return;
+
       try {
         // Stop any existing recognition first
         recognitionRef.current.abort();
@@ -114,10 +134,10 @@ export function useSpeechRecognition({
         }, 100);
       } catch (error) {
         console.error("Error starting speech recognition:", error);
-        onError?.("Failed to start speech recognition");
+        onError?.("Failed to start speech recognition. Please refresh the page and try again.");
       }
     }
-  }, [isListening, onError]);
+  }, [isListening, onError, checkMicrophonePermission]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
@@ -133,7 +153,9 @@ export function useSpeechRecognition({
   return {
     isListening,
     isSupported,
+    hasPermission,
     startListening,
     stopListening,
+    checkMicrophonePermission,
   };
 }
