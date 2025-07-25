@@ -24,14 +24,17 @@ export function MainInterface() {
   const { isListening, isSupported, startListening, stopListening } = useSpeechRecognition({
     onResult: handleVoiceResult,
     onError: (error) => {
-      toast({
-        title: "Voice Recognition Error",
-        description: error,
-        variant: "destructive",
-      });
+      // Only show error if it's not an "aborted" error
+      if (!error.includes("aborted")) {
+        toast({
+          title: "Voice Recognition Issue",
+          description: error,
+          variant: "destructive",
+        });
+      }
       setShowVoiceVisualizer(false);
       setVoiceRingsVisible(false);
-      setVoiceStatus('Say "Ok Halon" to activate');
+      setVoiceStatus(isSupported ? 'Say "Ok Halon" to activate' : 'Voice not supported - use text input');
     },
   });
 
@@ -201,7 +204,12 @@ export function MainInterface() {
                   <Button
                     onClick={toggleVoiceListening}
                     disabled={!isSupported}
-                    className="relative z-10 w-32 h-32 rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 text-white text-3xl hover:scale-110 transition-all duration-300 animate-pulse-glow border-0"
+                    className={`relative z-10 w-32 h-32 rounded-full text-white text-3xl hover:scale-110 transition-all duration-300 border-0 ${
+                      isSupported 
+                        ? "bg-gradient-to-r from-cyan-500 to-purple-500 animate-pulse-glow" 
+                        : "bg-gray-600 cursor-not-allowed"
+                    }`}
+                    title={!isSupported ? "Voice recognition not supported in this browser" : "Click to activate voice commands"}
                   >
                     <i className={`fas ${isListening ? "fa-stop" : "fa-microphone"}`} />
                   </Button>
@@ -211,6 +219,11 @@ export function MainInterface() {
                     <p className="text-white text-lg font-orbitron text-center">
                       {isProcessing ? "Processing..." : voiceStatus}
                     </p>
+                    {!isSupported && (
+                      <p className="text-gray-400 text-sm text-center mt-2">
+                        Voice not available - Use chat below or try Chrome/Edge
+                      </p>
+                    )}
                   </div>
                 </div>
 

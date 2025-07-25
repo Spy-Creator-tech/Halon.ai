@@ -67,9 +67,25 @@ export function useSpeechRecognition({
       };
       
       recognition.onerror = (event: any) => {
-        const errorMessage = `Speech recognition error: ${event.error}`;
-        console.error(errorMessage);
-        onError?.(errorMessage);
+        const errorType = event.error;
+        console.error("Speech recognition error:", errorType);
+        
+        // Handle different error types
+        if (errorType === 'aborted') {
+          // Ignore aborted errors as they're expected when stopping/starting
+          return;
+        }
+        
+        if (errorType === 'not-allowed') {
+          onError?.("Microphone access denied. Please allow microphone permissions.");
+        } else if (errorType === 'no-speech') {
+          onError?.("No speech detected. Try speaking closer to the microphone.");
+        } else if (errorType === 'network') {
+          onError?.("Network error. Please check your internet connection.");
+        } else {
+          onError?.(`Speech recognition error: ${errorType}`);
+        }
+        
         setIsListening(false);
       };
       
@@ -89,7 +105,13 @@ export function useSpeechRecognition({
   const startListening = useCallback(() => {
     if (recognitionRef.current && !isListening) {
       try {
-        recognitionRef.current.start();
+        // Stop any existing recognition first
+        recognitionRef.current.abort();
+        setTimeout(() => {
+          if (recognitionRef.current) {
+            recognitionRef.current.start();
+          }
+        }, 100);
       } catch (error) {
         console.error("Error starting speech recognition:", error);
         onError?.("Failed to start speech recognition");
@@ -98,10 +120,15 @@ export function useSpeechRecognition({
   }, [isListening, onError]);
 
   const stopListening = useCallback(() => {
-    if (recognitionRef.current && isListening) {
-      recognitionRef.current.stop();
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (error) {
+        console.error("Error stopping speech recognition:", error);
+      }
+      setIsListening(false);
     }
-  }, [isListening]);
+  }, []);
 
   return {
     isListening,
