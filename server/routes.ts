@@ -54,14 +54,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { action, parameters } = quickActionSchema.parse(req.body);
       
-      // In a real mobile app, these would integrate with device APIs
+      // Web-compatible actions - open relevant websites/services
       const actionResponses = {
-        flashlight: "Flashlight toggle command sent",
-        call: `Opening phone app${parameters?.contact ? ` to call ${parameters.contact}` : ''}`,
-        whatsapp: `Opening WhatsApp${parameters?.contact ? ` to message ${parameters.contact}` : ''}`,
-        music: "Opening music player",
-        youtube: `Opening YouTube${parameters?.search ? ` to search for ${parameters.search}` : ''}`,
-        email: `Opening email composer${parameters?.recipient ? ` to ${parameters.recipient}` : ''}`,
+        flashlight: "⚠️ Flashlight control requires a mobile app with system permissions. Try using your device's control center instead.",
+        call: `📞 Opening your default calling app...${parameters?.contact ? ` (Contact: ${parameters.contact})` : ''}`,
+        whatsapp: `💬 Opening WhatsApp Web...${parameters?.contact ? ` (Contact: ${parameters.contact})` : ''}`,
+        music: "🎵 Opening your default music service (Spotify/Apple Music/YouTube Music)...",
+        youtube: `📺 Opening YouTube${parameters?.search ? ` to search for "${parameters.search}"` : ''}...`,
+        email: `📧 Opening your default email client${parameters?.recipient ? ` (To: ${parameters.recipient})` : ''}...`,
       };
       
       res.json({

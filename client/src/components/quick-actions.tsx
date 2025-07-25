@@ -17,42 +17,42 @@ interface QuickAction {
 const quickActions: QuickAction[] = [
   {
     id: "flashlight",
-    label: "Toggle Flashlight",
+    label: "Flashlight Info",
     icon: "fas fa-flashlight",
     color: "text-yellow-400",
     hoverColor: "text-yellow-300",
   },
   {
     id: "call",
-    label: "Make Call",
+    label: "Open Phone App",
     icon: "fas fa-phone",
     color: "text-green-400",
     hoverColor: "text-green-300",
   },
   {
     id: "whatsapp",
-    label: "Send WhatsApp",
+    label: "Open WhatsApp Web",
     icon: "fab fa-whatsapp",
     color: "text-green-500",
     hoverColor: "text-green-400",
   },
   {
     id: "music",
-    label: "Play Music",
+    label: "Open Spotify",
     icon: "fas fa-music",
     color: "text-purple-400",
     hoverColor: "text-purple-300",
   },
   {
     id: "youtube",
-    label: "Search YouTube",
+    label: "Open YouTube",
     icon: "fab fa-youtube",
     color: "text-red-500",
     hoverColor: "text-red-400",
   },
   {
     id: "email",
-    label: "Compose Email",
+    label: "Open Email",
     icon: "fas fa-envelope",
     color: "text-blue-400",
     hoverColor: "text-blue-300",
@@ -66,6 +66,32 @@ export function QuickActions({ onActionComplete }: QuickActionsProps) {
     try {
       const result = await executeQuickAction(actionId);
       onActionComplete(result.message);
+      
+      // Actually open relevant web services
+      setTimeout(() => {
+        switch (actionId) {
+          case 'whatsapp':
+            window.open('https://web.whatsapp.com/', '_blank');
+            break;
+          case 'youtube':
+            window.open('https://www.youtube.com/', '_blank');
+            break;
+          case 'email':
+            window.open('mailto:', '_blank');
+            break;
+          case 'music':
+            window.open('https://open.spotify.com/', '_blank');
+            break;
+          case 'call':
+            // Try to open the tel: protocol
+            window.open('tel:', '_blank');
+            break;
+          case 'flashlight':
+            // No web equivalent - just show the message
+            break;
+        }
+      }, 500);
+
       toast({
         title: "Action Executed",
         description: result.message,

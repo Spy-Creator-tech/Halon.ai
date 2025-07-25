@@ -25,9 +25,9 @@ const capabilities: AICapability[] = [
     color: "text-green-400",
   },
   {
-    icon: "fas fa-mobile-alt",
-    title: "Device Control",
-    description: "Control apps, settings, and phone functions",
+    icon: "fas fa-globe",
+    title: "Web Services",
+    description: "Open web apps and services (WhatsApp, YouTube, etc.)",
     color: "text-orange-400",
   },
   {

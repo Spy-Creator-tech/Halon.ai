@@ -2,7 +2,7 @@
 
 ## Overview
 
-Halon is a modern AI-powered voice assistant application built with a full-stack TypeScript architecture. The application features a futuristic UI with voice interaction capabilities and various AI-powered functionalities including chat, content generation, and device control simulation.
+Halon is a modern AI-powered desktop assistant application built with a full-stack TypeScript architecture. The application features a futuristic UI with voice interaction capabilities (in supported browsers) and various AI-powered functionalities including chat, content generation, and web service integration. Originally conceived as a mobile assistant, it has been adapted as a web-based desktop application.
 
 ## User Preferences
 
