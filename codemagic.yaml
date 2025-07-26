@@ -4,8 +4,6 @@ workflows:
     instance_type: mac_mini_m1
     environment:
       flutter: stable
-      xcode: latest
-      cocoapods: latest
     scripts:
       - name: Set up Flutter
         script: |
